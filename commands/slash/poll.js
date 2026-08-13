@@ -31,10 +31,10 @@ module.exports = {
 
         try {
             const m = await pChannel.send({ embeds: [embed] });
-            pChannel.send("<@&1533623095271620759>");
+            pChannel.send("<@&1536804449425817675>");
             await m.react("✅");
             await m.react("❌");
-            await interaction.reply({ embeds: [new EmbedBuilder().setDescription(`✅ | Poll sent to ${channel}!`).setColor("Green")], ephemeral: true });
+            await interaction.reply({ embeds: [new EmbedBuilder().setDescription(`Poll sent to ${channel}!`).setColor("Green")], ephemeral: true });
         } catch (err) {
             console.log(err);
         }

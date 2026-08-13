@@ -35,7 +35,7 @@ module.exports = {
                 .setRequired(false)
         ),
     async execute(interaction) {
-        const allowedRoleId = '1533667672242524160'; // Embed perms
+        const allowedRoleId = '1536816463879606372'; // Embed perms
 
 
         if (!interaction.member.roles.cache.has(allowedRoleId)) {

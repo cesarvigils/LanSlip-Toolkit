@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, REST, Routes, ActivityType, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -16,6 +16,27 @@ const client = new Client({
 client.slashCommands = new Collection();
 client.prefixCommands = new Collection();
 const prefix = '!';
+
+const loadEvents = () => {
+    try {
+        const eventsPath = path.join(__dirname, 'events');
+        if (!fs.existsSync(eventsPath)) return;
+
+        const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+        for (const file of eventFiles) {
+            const event = require(path.join(eventsPath, file));
+            if (!event.name || !event.execute) continue;
+
+            if (event.once) {
+                client.once(event.name, (...args) => event.execute(...args, client));
+            } else {
+                client.on(event.name, (...args) => event.execute(...args, client));
+            }
+        }
+    } catch (error) {
+        console.error('Error loading events:', error);
+    }
+};
 
 const loadSlashCommands = async () => {
     try {
@@ -56,21 +77,9 @@ const loadPrefixCommands = async () => {
     }
 };
 
-client.once('ready', async () => {
-    try {
-        client.user.setPresence({
-            activities: [{ name: 'LANSlip', type: ActivityType.Watching }],
-            status: 'dnd',
-        });
-
-        await loadSlashCommands();
-        await loadPrefixCommands();
-
-        console.log(`Logged in as ${client.user.tag}`);
-    } catch (error) {
-        console.error('Error during client ready event:', error);
-    }
-});
+// Expose loaders on the client so events/ready.js can call them
+client.loadSlashCommands = loadSlashCommands;
+client.loadPrefixCommands = loadPrefixCommands;
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
@@ -101,6 +110,8 @@ client.on('messageCreate', async message => {
         message.reply('There was an error executing this command.');
     }
 });
+
+loadEvents();
 
 client.login(process.env.TOKEN).catch(error => {
     console.error('Error logging in:', error);
